@@ -1,2 +1,2 @@
 # dopeshope
-### work in progress for a shopping website 
+# work in progress for a shopping website 
