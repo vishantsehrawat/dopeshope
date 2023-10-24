@@ -1,8 +1,7 @@
 // email functionality working , your need to now work on verification by clicking on link sent on the mail
 const path = require("path"); // Add this line to import the path module
-
+const randomstring = require("randomstring");
 const { UserModel } = require("../models/user.model");
-
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -270,12 +269,67 @@ const resetPassword = async (req, res) => {
     "🚀 ~ file: user.controller.js:268 ~ resetPassword ~ userToken:",
     userToken
   );
-  // const token = userToken.split(" ")[1];
+  const token = userToken.split(" ")[1];
 
   try {
-    // const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    decoded = true;
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    console.log(
+      "🚀 ~ file: user.controller.js:279 ~ resetPassword ~ decoded:",
+      decoded
+    );
+    // decoded = true; // using auth middleware before this so commented verification
     if (decoded) {
+      const otpCode = randomstring.generate(6);
+      console.log(
+        "🚀 ~ file: user.controller.js:281 ~ resetPassword ~ otpCode:",
+        otpCode
+      );
+      const user = await UserModel.findOne({ _id: decoded.userId });
+      console.log(
+        "🚀 ~ file: user.controller.js:282 ~ resetPassword ~ user:",
+        user
+      );
+
+      user.otp = {
+        code: otpCode,
+        expiration: new Date(+new Date() + 15 * 60 * 1000), // 15 minutes from now
+      };
+
+      // Save the user with the updated OTP
+      await user.save();
+      const emailSubject = "Password Reset OTP";
+      const emailText = `Your OTP for password reset is: ${otpCode}`;
+
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        port: 587,
+        auth: {
+          user: process.env.EMAIL_FOR_NODE_MAILER,
+          pass: process.env.EMAIL_API_KEY_NODE_MAILER,
+        },
+      });
+
+      // You can use an email sending library like Nodemailer to send the email
+      // Replace the following with your email sending code
+      const emailOptions = {
+        from: "vishant.96.sehrawat@gmail.com", // Set your email address
+        to: user.email, // User's email address
+        subject: emailSubject,
+        text: emailText,
+      };
+
+      // Send the email
+      await transporter.sendMail(emailOptions, (err, info) => {
+        if (err) {
+          console.log("While Email Send error: ", err);
+          reject(false);
+        } else {
+          console.log(`Mail sent successfully!`);
+          console.log(info);
+          resolve(true);
+        }
+      });
+
       // Retrieve the file path from the environment variable, or use a default path
       const filePath = path.join(
         __dirname,
@@ -283,7 +337,9 @@ const resetPassword = async (req, res) => {
         process.env.FORGOT_PASSWORD_FILE_PATH || "./view/forgotPassword.html"
       );
 
-      return res.sendFile(filePath);
+      return res.status(200).sendFile(filePath, () => {
+        res.send("OTP has been sent to your email.");
+      });
     } else {
       return res
         .status(404)

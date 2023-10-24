@@ -18,7 +18,7 @@ userRouter.get("/home", (req, res) => {
 });
 userRouter.post("/register", newRegistration);
 userRouter.post("/login", userLogin);
-userRouter.get("/resetUserPassword", jwtAuth, resetPassword);
+userRouter.get("/resetUserPassword",  resetPassword);
 userRouter.post("/saveNewPassword", jwtAuth, saveNewPassword);
 
 module.exports = {

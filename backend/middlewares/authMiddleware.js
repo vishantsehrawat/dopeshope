@@ -14,8 +14,8 @@ const jwtAuth = async (req, res, next) => {
     });
   }
 
-  //   const token = authToken.trim().split(" ")[1];//for bearer token
-  const token = authToken.trim().split(" ")[0]; // for normal token
+    const token = authToken.trim().split(" ")[1];//for bearer token
+  // const token = authToken.trim().split(" ")[0]; // for normal token
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
