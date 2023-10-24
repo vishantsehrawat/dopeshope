@@ -185,6 +185,81 @@ function sendEmailForVerification(userid, name, email) {
   });
 }
 
+// ^ User login handler function +++++++++++++++++++++++++++++++++++++++++++++++++++
+const userLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const userExists = await UserModel.findOne({ email });
+    console.log(
+      "🚀 ~ file: user.controller.js:194 ~ userLogin ~ userExists:",
+      userExists
+    );
+
+    if (userExists) {
+      if (!userExists.isMailVerified) {
+        return res.status(400).send({
+          msg: "Kindly Verify Your Email ID.",
+
+          error: "Email is Not Verified ",
+
+          Success: false,
+        });
+      }
+      if (userExists.isBlocked) {
+        return res.status(400).send({
+          msg: "Kindly Contact To Manager",
+
+          error: "Your account is blocked by Admin.(Contact To manager.)",
+
+          Success: false,
+        });
+      }
+
+      bcrypt.compare(password, userExists.password, (err, result) => {
+        if (!result) {
+          return res.status(400).send({
+            msg: "Kindly Enter correct Password. Password entered is Invalid !",
+
+            Success: false,
+          });
+        } else {
+          return res.status(200).send({
+            msg: "Login Successfull.",
+
+            Success: true,
+
+            token: jwt.sign(
+              { UserID: userExists._id },
+              process.env.SECRET_KEY,
+              {
+                expiresIn: "24h",
+              }
+            ),
+          });
+        }
+      });
+    } else {
+      return res.status(400).send({
+        msg: "Kindly Register yourself First. User Doesn't Exists at all.",
+
+        error: "User Not Found! ",
+
+        Success: false,
+      });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      error: error.message,
+
+      Success: false,
+
+      msg: "Something Went Wrong !",
+    });
+  }
+};
+
 module.exports = {
   newRegistration,
+  userLogin,
 };

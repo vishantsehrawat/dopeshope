@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
     image: {
       type: String,
       default:
-        "https://cdn.pixabay.com/photo/2020/07/14/13/07/icon-5404125_1280.png",
+        "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=",
     },
     s3Url: { type: String },
     s3UrlExpireDate: { type: Date },
