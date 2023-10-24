@@ -5,6 +5,7 @@ const {
   resetPassword,
   saveNewPassword,
 } = require("../controller/user.controller");
+const { jwtAuth } = require("../middlewares/authMiddleware");
 
 const userRouter = express.Router();
 
@@ -17,8 +18,8 @@ userRouter.get("/home", (req, res) => {
 });
 userRouter.post("/register", newRegistration);
 userRouter.post("/login", userLogin);
-userRouter.post("/resetUserPassword", resetPassword);
-userRouter.post("/saveNewPassword", saveNewPassword);
+userRouter.get("/resetUserPassword", jwtAuth, resetPassword);
+userRouter.post("/saveNewPassword", jwtAuth, saveNewPassword);
 
 module.exports = {
   userRouter,

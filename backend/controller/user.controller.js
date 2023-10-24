@@ -1,4 +1,5 @@
 // email functionality working , your need to now work on verification by clicking on link sent on the mail
+const path = require("path"); // Add this line to import the path module
 
 const { UserModel } = require("../models/user.model");
 
@@ -7,6 +8,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv");
 
+// ^ route to register a user +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const newRegistration = async (req, res) => {
   let {
     email,
@@ -156,7 +158,7 @@ function sendEmailForVerification(userid, name, email) {
 
   //   const BaseUrl_Backend = process.env.backendUrl;
 
-  const accessToken = jwt.sign({ UserID: userid }, process.env.SECRET_KEY, {
+  const accessToken = jwt.sign({ usedId: userid }, process.env.SECRET_KEY, {
     expiresIn: mailExpireTime,
   });
 
@@ -230,7 +232,7 @@ const userLogin = async (req, res) => {
             Success: true,
 
             token: jwt.sign(
-              { UserID: userExists._id },
+              { userId: userExists._id }, // this id will be used to uniquely identify the user so that only his data can be accessed
               process.env.SECRET_KEY,
               {
                 expiresIn: "24h",
@@ -262,15 +264,25 @@ const userLogin = async (req, res) => {
 // ^ password reset for user
 
 const resetPassword = async (req, res) => {
-  const { userToken } = req.query;
+  // const { userToken } = req.query;
+  const userToken = req.headers["authorization"];
+  console.log(
+    "🚀 ~ file: user.controller.js:268 ~ resetPassword ~ userToken:",
+    userToken
+  );
+  // const token = userToken.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(userToken, process.env.SECRET_KEY);
-
+    // const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    decoded = true;
     if (decoded) {
       // Retrieve the file path from the environment variable, or use a default path
-      const filePath =
-        process.env.FORGOT_PASSWORD_FILE_PATH || "./view/forgotPassoword.html";
+      const filePath = path.join(
+        __dirname,
+        "..",
+        process.env.FORGOT_PASSWORD_FILE_PATH || "./view/forgotPassword.html"
+      );
+
       return res.sendFile(filePath);
     } else {
       return res
@@ -287,15 +299,15 @@ const resetPassword = async (req, res) => {
 // ^ save the new password that user resetted
 
 const saveNewPassword = async (req, res) => {
-  const { UserID } = req.body;
+  const { userId } = req.body;
   const { password } = req.body;
   try {
-    const userPresent = await UserModel.findById({ _id: UserID });
+    const userPresent = await UserModel.findById({ _id: userId });
 
     if (userPresent) {
       const hashPass = bcrypt.hashSync(password, 7);
       await UserModel.findByIdAndUpdate(
-        { _id: UserID },
+        { _id: userId },
         { password: hashPass }
       );
 
