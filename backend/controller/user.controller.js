@@ -259,7 +259,69 @@ const userLogin = async (req, res) => {
   }
 };
 
+// ^ password reset for user
+
+const resetPassword = async (req, res) => {
+  const { userToken } = req.query;
+
+  try {
+    const decoded = jwt.verify(userToken, process.env.SECRET_KEY);
+
+    if (decoded) {
+      // Retrieve the file path from the environment variable, or use a default path
+      const filePath =
+        process.env.FORGOT_PASSWORD_FILE_PATH || "./view/forgotPassoword.html";
+      return res.sendFile(filePath);
+    } else {
+      return res
+        .status(404)
+        .send(
+          "<h1>Oops! This link is expired. Kindly generate a new link for password reset.</h1>"
+        );
+    }
+  } catch (error) {
+    return res.status(400).send(`<h1>Error (400): ${error.message}</h1>`);
+  }
+};
+
+// ^ save the new password that user resetted
+
+const saveNewPassword = async (req, res) => {
+  const { UserID } = req.body;
+  const { password } = req.body;
+  try {
+    const userPresent = await UserModel.findById({ _id: UserID });
+
+    if (userPresent) {
+      const hashPass = bcrypt.hashSync(password, 7);
+      await UserModel.findByIdAndUpdate(
+        { _id: UserID },
+        { password: hashPass }
+      );
+
+      return res.status(400).send({
+        msg: "Your Password has been changed Successfully.",
+        Success: true,
+      });
+    } else {
+      return res.status(400).send({
+        msg: "Your Account does Not Exit",
+        error: "User Not Found",
+        Success: false,
+      });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      msg: "Something Went Wrong",
+      error: error.message,
+      Success: false,
+    });
+  }
+};
+
 module.exports = {
   newRegistration,
   userLogin,
+  resetPassword,
+  saveNewPassword,
 };
