@@ -4,6 +4,7 @@ const {
   userLogin,
   resetPassword,
   saveNewPassword,
+  verifyOtp,
 } = require("../controller/user.controller");
 const { jwtAuth } = require("../middlewares/authMiddleware");
 
@@ -18,8 +19,9 @@ userRouter.get("/home", (req, res) => {
 });
 userRouter.post("/register", newRegistration);
 userRouter.post("/login", userLogin);
-userRouter.get("/resetUserPassword",  resetPassword);
+userRouter.get("/resetUserPassword", jwtAuth, resetPassword);
 userRouter.post("/saveNewPassword", jwtAuth, saveNewPassword);
+userRouter.post("/verifyOtp", jwtAuth, verifyOtp);
 
 module.exports = {
   userRouter,

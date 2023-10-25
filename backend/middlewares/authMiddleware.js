@@ -4,7 +4,11 @@ const { BlacklistModel } = require("../models/blacklist.model");
 const { UserModel } = require("../models/user.model");
 
 const jwtAuth = async (req, res, next) => {
-  const authToken = req.headers["authorization"];
+  const authToken = req.headers["authorization"]?.trim().split(" ")[1];
+  // console.log(
+  // "🚀 ~ file: authMiddleware.js:8 ~ jwtAuth ~ authToken:",
+  // authToken
+  // );
 
   if (!authToken) {
     return res.status(400).json({
@@ -14,14 +18,12 @@ const jwtAuth = async (req, res, next) => {
     });
   }
 
-    const token = authToken.trim().split(" ")[1];//for bearer token
-  // const token = authToken.trim().split(" ")[0]; // for normal token
-
   try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(authToken, process.env.SECRET_KEY);
+    // console.log("🚀 ~ file: authMiddleware.js:23 ~ jwtAuth ~ decoded:", decoded)
 
     if (decoded) {
-      const isBlacklist = await BlacklistModel.findOne({ token: token });
+      const isBlacklist = await BlacklistModel.findOne({ token: authToken });
       if (isBlacklist) {
         return res.status(400).json({
           error: "Your Access Token is Blacklisted. Kindly Login Again.",
@@ -30,7 +32,7 @@ const jwtAuth = async (req, res, next) => {
         });
       }
 
-      const userInfo = await UserModel.findById(decoded.createdBy);
+      const userInfo = await UserModel.findById(decoded.userId);
       if (userInfo.isBlocked) {
         return res.status(400).json({
           error: "Your Account is Blocked by Admin. Contact the manager.",

@@ -110,10 +110,10 @@ const newRegistration = async (req, res) => {
 
           // Email Send For Verification
           const result = await sendEmailForVerification(user._id, name, email);
-          console.log(
-            "🚀 ~ file: user.controller.js:110 ~ bcrypt.hash ~ result:",
-            result
-          );
+          // console.log(
+          // "🚀 ~ file: user.controller.js:110 ~ bcrypt.hash ~ result:",
+          // result
+          // );
 
           if (result) {
             return res.status(400).send({
@@ -192,10 +192,10 @@ const userLogin = async (req, res) => {
 
   try {
     const userExists = await UserModel.findOne({ email });
-    console.log(
-      "🚀 ~ file: user.controller.js:194 ~ userLogin ~ userExists:",
-      userExists
-    );
+    // console.log(
+    // "🚀 ~ file: user.controller.js:194 ~ userLogin ~ userExists:",
+    // userExists
+    // );
 
     if (userExists) {
       if (!userExists.isMailVerified) {
@@ -260,75 +260,37 @@ const userLogin = async (req, res) => {
   }
 };
 
-// ^ password reset for user
+// ^ password reset for user +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const resetPassword = async (req, res) => {
-  // const { userToken } = req.query;
-  const userToken = req.headers["authorization"];
-  console.log(
-    "🚀 ~ file: user.controller.js:268 ~ resetPassword ~ userToken:",
-    userToken
-  );
-  const token = userToken.split(" ")[1];
-
   try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const token = req.headers["authorization"]?.split(" ")[1];
     console.log(
-      "🚀 ~ file: user.controller.js:279 ~ resetPassword ~ decoded:",
-      decoded
+      "🚀 ~ file: user.controller.js:268 ~ resetPassword ~ token:",
+      token
     );
-    // decoded = true; // using auth middleware before this so commented verification
+
+    if (!token) {
+      return res.status(401).send("<h1>Unauthorized. Login to continue</h1>");
+    }
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
     if (decoded) {
       const otpCode = randomstring.generate(6);
-      console.log(
-        "🚀 ~ file: user.controller.js:281 ~ resetPassword ~ otpCode:",
-        otpCode
-      );
       const user = await UserModel.findOne({ _id: decoded.userId });
-      console.log(
-        "🚀 ~ file: user.controller.js:282 ~ resetPassword ~ user:",
-        user
-      );
 
       user.otp = {
         code: otpCode,
-        expiration: new Date(+new Date() + 15 * 60 * 1000), // 15 minutes from now
+        expiration: new Date(+new Date() + 15 * 60 * 1000),
       };
 
-      // Save the user with the updated OTP
       await user.save();
+
       const emailSubject = "Password Reset OTP";
       const emailText = `Your OTP for password reset is: ${otpCode}`;
 
-      let transporter = nodemailer.createTransport({
-        service: "gmail",
-        port: 587,
-        auth: {
-          user: process.env.EMAIL_FOR_NODE_MAILER,
-          pass: process.env.EMAIL_API_KEY_NODE_MAILER,
-        },
-      });
-
-      // You can use an email sending library like Nodemailer to send the email
-      // Replace the following with your email sending code
-      const emailOptions = {
-        from: "vishant.96.sehrawat@gmail.com", // Set your email address
-        to: user.email, // User's email address
-        subject: emailSubject,
-        text: emailText,
-      };
-
-      // Send the email
-      await transporter.sendMail(emailOptions, (err, info) => {
-        if (err) {
-          console.log("While Email Send error: ", err);
-          reject(false);
-        } else {
-          console.log(`Mail sent successfully!`);
-          console.log(info);
-          resolve(true);
-        }
-      });
+      await sendPasswordResetEmail(user.email, emailSubject, emailText);
 
       // Retrieve the file path from the environment variable, or use a default path
       const filePath = path.join(
@@ -337,9 +299,7 @@ const resetPassword = async (req, res) => {
         process.env.FORGOT_PASSWORD_FILE_PATH || "./view/forgotPassword.html"
       );
 
-      return res.status(200).sendFile(filePath, () => {
-        res.send("OTP has been sent to your email.");
-      });
+      res.status(200).sendFile(filePath);
     } else {
       return res
         .status(404)
@@ -348,11 +308,37 @@ const resetPassword = async (req, res) => {
         );
     }
   } catch (error) {
-    return res.status(400).send(`<h1>Error (400): ${error.message}</h1>`);
+    console.error("Error:", error);
+    return res.status(400).send("<h1>Error (400): An error occurred.</h1>");
   }
 };
 
-// ^ save the new password that user resetted
+async function sendPasswordResetEmail(email, subject, text) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 587,
+      auth: {
+        user: process.env.EMAIL_FOR_NODE_MAILER,
+        pass: process.env.EMAIL_API_KEY_NODE_MAILER,
+      },
+    });
+
+    const emailOptions = {
+      from: process.env.DOPESHOPE_EMAIL,
+      to: email,
+      subject: subject,
+      text: text,
+    };
+
+    await transporter.sendMail(emailOptions);
+  } catch (error) {
+    console.error("Email sending error:", error);
+    throw error;
+  }
+}
+
+// ^ save the new password that user resetted ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const saveNewPassword = async (req, res) => {
   const { userId } = req.body;
@@ -367,7 +353,7 @@ const saveNewPassword = async (req, res) => {
         { password: hashPass }
       );
 
-      return res.status(400).send({
+      return res.status(200).send({
         msg: "Your Password has been changed Successfully.",
         Success: true,
       });
@@ -387,9 +373,53 @@ const saveNewPassword = async (req, res) => {
   }
 };
 
+// ^ function to verify otp stored inside the user model +++++++++++++++++++++++++++++++++++
+
+const verifyOtp = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ Success: false, error: "Unauthorized" });
+    }
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    if (!decoded) {
+      return res.status(401).json({ Success: false, error: "Unauthorized" });
+    }
+
+    const { otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ Success: false, error: "OTP is required" });
+    }
+
+    const user = await UserModel.findOne({ _id: decoded.userId });
+
+    if (!user) {
+      return res.status(404).json({ Success: false, error: "User not found" });
+    }
+
+    // Check if the provided OTP matches the one stored in the user's model
+    if (user.otp.code === otp) {
+      return res
+        .status(200)
+        .json({ Success: true, msg: "OTP verified successfully" });
+    } else {
+      return res
+        .status(400)
+        .json({ Success: false, error: "Invalid or expired OTP" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ Success: false, error: "Internal server error" });
+  }
+};
+
 module.exports = {
   newRegistration,
   userLogin,
   resetPassword,
   saveNewPassword,
+  verifyOtp,
 };

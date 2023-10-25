@@ -29,12 +29,13 @@ const userSchema = new mongoose.Schema(
     s3Url: { type: String },
     s3UrlExpireDate: { type: Date },
     isBlocked: { type: Boolean, default: false },
-    otp: { // for resetting password
+    otp: {
+      // for resetting password
       code: { type: String }, // OTP code
       expiration: {
         type: Date,
         default: function () {
-          return new Date(+new Date() + 15 * 60 * 1000); // 15 minutes from creation
+          return new Date(+new Date() + 15 * 60 * 1000 * 1000); // 15 minutes from creation // ! added extra 1000 during dev for testing , remove in production
         },
       },
     },
