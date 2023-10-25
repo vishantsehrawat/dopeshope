@@ -442,7 +442,7 @@ const userlogout = async (req, res) => {
     const newBlacklistToken = new BlacklistModel({
       token: token,
       expirationDate: expireDate,
-      createdBy:decoded.userId,
+      createdBy: decoded.userId,
     });
 
     await newBlacklistToken.save();
