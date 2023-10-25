@@ -5,6 +5,7 @@ const { UserModel } = require("../models/user.model");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { BlacklistModel } = require("../models/blacklist.model");
 require("dotenv");
 
 // ^ route to register a user +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -416,10 +417,54 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+// ^ user logout route ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const userlogout = async (req, res) => {
+  const token = req.headers["authorization"].trim().split(" ")[1];
+
+  if (!token) {
+    return res.status(400).send({
+      msg: "Token Not Found.",
+
+      error: "Token Not Found.",
+
+      Success: false,
+    });
+  }
+
+  try {
+    const decoded = jwt.decode(token);
+    console.log(
+      "🚀 ~ file: user.controller.js:438 ~ userlogout ~ decoded:",
+      decoded
+    );
+    const expireDate = new Date(decoded.exp * 1000);
+
+    const newBlacklistToken = new BlacklistModel({
+      token: token,
+      expirationDate: expireDate,
+      createdBy:decoded.userId,
+    });
+
+    await newBlacklistToken.save();
+
+    return res.status(200).send({
+      error: "no error",
+      Success: true,
+      msg: "Logout Successfull.",
+    });
+  } catch (error) {
+    return res.status(400).send({
+      error: error.message,
+      msg: "Something Wrong with the Token passed",
+      Success: false,
+    });
+  }
+};
 module.exports = {
   newRegistration,
   userLogin,
   resetPassword,
   saveNewPassword,
   verifyOtp,
+  userlogout,
 };
