@@ -5,9 +5,8 @@ const passport = require("passport");
 const crypto = require("crypto");
 const { UserModel } = require("../models/user.model");
 const randomPassword = (byte = 32) => crypto.randomBytes(byte).toString("hex");
-
-
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
 passport.use(
   new GoogleStrategy(
     {
@@ -26,7 +25,14 @@ passport.use(
 
         if (!user) {
           console.log("adding new user");
-
+          console.log(
+            "🚀 ~ file: googleOauth.js:14 ~ process.env.GOOGLE_CLIENT_ID:",
+            process.env.GOOGLE_CLIENT_ID
+          );
+          console.log(
+            "🚀 ~ file: googleOauth.js:16 ~ process.env.GOOGLE_CLIENT_SECRET:",
+            process.env.GOOGLE_CLIENT_SECRET
+          );
           let newuser = new UserModel({
             email,
             name: profile._json.name,

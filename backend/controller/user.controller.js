@@ -460,6 +460,8 @@ const userlogout = async (req, res) => {
     });
   }
 };
+
+
 module.exports = {
   newRegistration,
   userLogin,
