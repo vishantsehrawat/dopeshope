@@ -6,6 +6,12 @@ const {
   saveNewPassword,
   verifyOtp,
   userlogout,
+  uploadProfileImage,
+  deleteProfileImage,
+  getAllUsers,
+  updateUserRole,
+  blockUserAccount,
+  activateUserAccount,
 } = require("../controller/user.controller");
 const { jwtAuth } = require("../middlewares/authMiddleware");
 const { passport } = require("../config/googleOauth");

@@ -1,5 +1,6 @@
 // email functionality working , your need to now work on verification by clicking on link sent on the mail
 const path = require("path"); // Add this line to import the path module
+const multer = require("multer");
 const randomstring = require("randomstring");
 const { UserModel } = require("../models/user.model");
 const nodemailer = require("nodemailer");
@@ -460,7 +461,188 @@ const userlogout = async (req, res) => {
     });
   }
 };
+// ^ user image upload route ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+// Multer configuration for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/profileImages"); // Destination folder for uploaded images
+  },
+  filename: (req, file, cb) => {
+    // Generate a unique filename for the uploaded image
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const fileExtension = file.originalname.split(".").pop();
+    cb(null, `${file.fieldname}-${uniqueSuffix}.${fileExtension}`);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+const uploadProfileImage = async (req, res) => {
+  const userId = req.body.userId; // Assuming "userId" is available in the request body
+
+  try {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    upload.single("profileImage")(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ message: "File upload failed" });
+      }
+
+      user.image = req.file.path;
+
+      await user.save();
+
+      return res
+        .status(200)
+        .json({ message: "Profile image uploaded successfully" });
+    });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
+
+// ^ user image DELETE route ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const deleteProfileImage = async (req, res) => {
+  const userId = req.body.userId;
+
+  try {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.image) {
+      user.image = "";
+
+      await user.save();
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Profile image deleted successfully" });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
+
+// ~ ADMIN only routes  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// ^ ADMIN only route to get all users  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const getAllUsers = async (req, res) => {
+  try {
+    const { role } = req.query;
+
+    const filter = {};
+    if (role) {
+      filter.role = role;
+    }
+    const users = await UserModel.find(filter);
+
+    if (users.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No users found matching the specified role" });
+    }
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
+
+// ^ ADMIN only route to update user role  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const updateUserRole = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const newRole = req.body.role;
+    if (newRole !== "user" && newRole !== "admin") {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = newRole;
+    await user.save();
+
+    return res.status(200).json({ message: "User role updated" });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
+
+// ^ ADMIN only route to Block user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const blockUserAccount = async (req, res) => {
+  try {
+    const accountId = req.params.accountId; // getting account id as params
+    const user = await UserModel.findById(accountId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.isBlocked = true;
+
+    await user.save();
+
+    return res.status(200).json({ message: "User account blocked" });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
+
+// ^ ADMIN only route to reACTIVATE user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const activateUserAccount = async (req, res) => {
+  try {
+    const accountId = req.params.accountId; // getting account id as params
+
+    const user = await UserModel.findById(accountId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.isBlocked = false;
+    await user.save();
+
+    return res.status(200).json({ message: "User account activated" });
+  } catch (error) {
+    return res.status(400).json({
+      error: error.message,
+      Success: false,
+      msg: "Something Went Wrong!",
+    });
+  }
+};
 
 module.exports = {
   newRegistration,
@@ -469,5 +651,10 @@ module.exports = {
   saveNewPassword,
   verifyOtp,
   userlogout,
+  uploadProfileImage,
+  deleteProfileImage,
+  getAllUsers,
+  updateUserRole,
+  blockUserAccount,
+  activateUserAccount,
 };
-
