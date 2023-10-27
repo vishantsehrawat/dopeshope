@@ -75,7 +75,7 @@ userRouter.post("/uploadProfileImage", jwtAuth, uploadProfileImage);
 // ^ DELETING profile picture ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 userRouter.delete("/deleteProfileImage", jwtAuth, deleteProfileImage);
 
-// ~ ADMIN only routes ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ~ ADMIN only routes below ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 //^ getting list of all the users ++++++++++++++++++++++++++++++++++++++++
 userRouter.get("/getAllUsers", jwtAuth, adminRoleCheck, getAllUsers);
@@ -98,6 +98,7 @@ userRouter.patch(
   adminRoleCheck,
   activateUserAccount
 );
+// ~ ADMIN only routes above -------------------------------------------------------------------
 
 module.exports = {
   userRouter,
