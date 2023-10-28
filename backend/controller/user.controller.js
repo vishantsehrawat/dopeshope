@@ -552,18 +552,54 @@ const viewWishlist = async (req, res) => {
 
     return res.status(200).json({ success: true, wishlist: user.wishlist });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: "An error occurred while fetching the wishlist",
-      });
+    return res.status(500).json({
+      success: false,
+      error: "An error occurred while fetching the wishlist",
+    });
   }
 };
 
-// ~ ADMIN only routes  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ^ remove product from wishlist
 
-// ^ ADMIN only route to get all users  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const removeProductFromWishlist = async (req, res) => {
+  const { productId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const productIndex = user.wishlist.indexOf(productId);
+
+    if (productIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Product not found in wishlist" });
+    }
+
+    user.wishlist.splice(productIndex, 1);
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Product removed from wishlist successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "An error occurred while removing the product from the wishlist",
+    });
+  }
+};
+
+// ~ ADMIN only routes below ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// ~ ADMIN only route to get all users  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const getAllUsers = async (req, res) => {
   try {
     const { role } = req.query;
@@ -590,7 +626,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// ^ ADMIN only route to update user role  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ~ ADMIN only route to update user role  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const updateUserRole = async (req, res) => {
   try {
@@ -619,7 +655,7 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-// ^ ADMIN only route to Block user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ~ ADMIN only route to Block user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const blockUserAccount = async (req, res) => {
   try {
     const accountId = req.params.accountId; // getting account id as params
@@ -643,7 +679,7 @@ const blockUserAccount = async (req, res) => {
   }
 };
 
-// ^ ADMIN only route to reACTIVATE user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ~ ^ ADMIN only route to reACTIVATE user ACCOUNT  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const activateUserAccount = async (req, res) => {
   try {
     const accountId = req.params.accountId; // getting account id as params
@@ -665,6 +701,7 @@ const activateUserAccount = async (req, res) => {
     });
   }
 };
+// ~ ADMIN only routes above ---------------------------------------------------------------
 
 module.exports = {
   newRegistration,
@@ -680,4 +717,5 @@ module.exports = {
   blockUserAccount,
   activateUserAccount,
   viewWishlist,
+  removeProductFromWishlist,
 };

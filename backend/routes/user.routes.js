@@ -13,6 +13,7 @@ const {
   blockUserAccount,
   activateUserAccount,
   viewWishlist,
+  removeProductFromWishlist,
 } = require("../controller/user.controller");
 const { jwtAuth } = require("../middlewares/authMiddleware");
 const { passport } = require("../config/googleOauth");
@@ -79,15 +80,22 @@ userRouter.delete("/deleteProfileImage", jwtAuth, deleteProfileImage);
 // ^ getting user wishlist ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 userRouter.get("/wishlist", jwtAuth, viewWishlist);
 
+// ^ remove product from wishlist
+userRouter.delete(
+  "/wishlist/remove/:productId",
+  jwtAuth,
+  removeProductFromWishlist
+);
+
 // ~ ADMIN only routes below ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-//^ getting list of all the users ++++++++++++++++++++++++++++++++++++++++
+//~  getting list of all the users ++++++++++++++++++++++++++++++++++++++++
 userRouter.get("/getAllUsers", jwtAuth, adminRoleCheck, getAllUsers);
 
-//^ updating user role ++++++++++++++++++++++++++++++++++++++++
+// ~  updating user role ++++++++++++++++++++++++++++++++++++++++
 userRouter.put("/updateUserRole", jwtAuth, adminRoleCheck, updateUserRole);
 
-//^ blocking user account ++++++++++++++++++++++++++++++++++++++++
+//~  blocking user account ++++++++++++++++++++++++++++++++++++++++
 userRouter.patch(
   "/blockUserAccount/:accountId",
   jwtAuth,
@@ -95,7 +103,7 @@ userRouter.patch(
   blockUserAccount
 );
 
-//^ activating user account ++++++++++++++++++++++++++++++++++++++++
+//~  activating user account ++++++++++++++++++++++++++++++++++++++++
 userRouter.patch(
   "/activateUserAccount/:accountId",
   jwtAuth,
