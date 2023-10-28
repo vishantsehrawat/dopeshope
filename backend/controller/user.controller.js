@@ -539,6 +539,28 @@ const deleteProfileImage = async (req, res) => {
   }
 };
 
+// ^ getting user wishlist ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+const viewWishlist = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId).populate("wishlist");
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, wishlist: user.wishlist });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({
+        success: false,
+        error: "An error occurred while fetching the wishlist",
+      });
+  }
+};
+
 // ~ ADMIN only routes  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // ^ ADMIN only route to get all users  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -657,4 +679,5 @@ module.exports = {
   updateUserRole,
   blockUserAccount,
   activateUserAccount,
+  viewWishlist,
 };

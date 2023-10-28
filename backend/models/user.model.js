@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     gender: {
       type: String,
-      enum: ["male", "female", "other","null"],
+      enum: ["male", "female", "other", "null"],
       default: "Other",
     },
     location: { type: String, required: true },
@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema(
         },
       },
     },
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "product", // reference to product model
+      },
+    ],
   },
   {
     versionKey: false,

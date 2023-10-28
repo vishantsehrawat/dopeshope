@@ -12,6 +12,7 @@ const {
   updateUserRole,
   blockUserAccount,
   activateUserAccount,
+  viewWishlist,
 } = require("../controller/user.controller");
 const { jwtAuth } = require("../middlewares/authMiddleware");
 const { passport } = require("../config/googleOauth");
@@ -74,6 +75,9 @@ userRouter.post("/uploadProfileImage", jwtAuth, uploadProfileImage);
 
 // ^ DELETING profile picture ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 userRouter.delete("/deleteProfileImage", jwtAuth, deleteProfileImage);
+
+// ^ getting user wishlist ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+userRouter.get("/wishlist", jwtAuth, viewWishlist);
 
 // ~ ADMIN only routes below ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
