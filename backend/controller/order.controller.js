@@ -1,7 +1,7 @@
 // ctrl+ k +0 to fold k + j to unfold
 const OrderModel = require("../models/order.model");
 
-// Route to get order details by ID
+// ^Route to get order details by ID
 const getOrderById = async (req, res) => {
   const orderId = req.params.orderId;
   try {
@@ -19,7 +19,7 @@ const getOrderById = async (req, res) => {
   }
 };
 
-// Route to get orders by user ID
+// ^Route to get orders by user ID
 const getOrdersByUser = async (req, res) => {
   const userId = req.params.userId;
   try {
@@ -32,7 +32,7 @@ const getOrdersByUser = async (req, res) => {
   }
 };
 
-// Route to update order details
+// ^Route to update order details
 const updateOrderDetails = async (req, res) => {
   const orderId = req.params.orderId;
   const updatedData = req.body;
@@ -55,7 +55,7 @@ const updateOrderDetails = async (req, res) => {
   }
 };
 
-// Route to track order status
+// ^ Route to track order status
 const trackOrderStatus = async (req, res) => {
   const orderId = req.params.orderId;
   try {
@@ -73,7 +73,7 @@ const trackOrderStatus = async (req, res) => {
   }
 };
 
-// Route to calculate order total price
+// ^Route to calculate order total price
 const calculateOrderTotalPrice = async (req, res) => {
   const orderId = req.params.orderId;
   try {
@@ -101,7 +101,7 @@ const handleOrderPayments = async (req, res) => {
     message: "Payment handling logic not implemented yet",
   });
 };
-
+// ^ Route to delete the order
 const deleteOrder = async (req, res) => {
   const orderId = req.params.orderId;
   try {
@@ -121,10 +121,10 @@ const deleteOrder = async (req, res) => {
   }
 };
 
-// Route to place a new order
+// ^Route to place a new order
 const placeNewOrder = async (req, res) => {
   try {
-    const orderData = req.body; 
+    const orderData = req.body;
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
     return res.status(201).json({
@@ -140,7 +140,7 @@ const placeNewOrder = async (req, res) => {
   }
 };
 
-// Route to get orders
+// ^Route to get orders
 const getOrders = async (req, res) => {
   try {
     const orders = await OrderModel.find();
@@ -189,7 +189,7 @@ const getAllOrders = async (req, res) => {
   }
 };
 
-// Admin accessible route to change order status
+// ?Admin accessible route to change order status
 const changeOrderStatus = async (req, res) => {
   const orderId = req.params.id;
   const { newStatus } = req.body;
@@ -214,7 +214,7 @@ const changeOrderStatus = async (req, res) => {
     });
   }
 };
-// Route to add products to an order
+// ^Route to add products to an order
 const addProductsToOrder = async (req, res) => {
   const { orderId } = req.params;
   const { products } = req.body;
