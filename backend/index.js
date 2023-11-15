@@ -4,6 +4,8 @@ const cors = require("cors");
 const { userRouter } = require("./routes/user.routes");
 const { connection } = require("./config/dbConnection");
 const { apolloServer } = require("./graphql/server/apolloServer");
+const { productRouter } = require("./routes/product.routes");
+const { orderRouter } = require("./routes/order.routes");
 const app = express();
 
 // ^ Mounting Apollo Server as middleware on your Express app
@@ -20,6 +22,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/user", userRouter);
+app.use("/product", productRouter);
+app.use("/order", orderRouter);
 
 app.listen(process.env.PORT, async (req, res) => {
   try {
