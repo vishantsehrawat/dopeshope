@@ -6,6 +6,7 @@ const { connection } = require("./config/dbConnection");
 const { apolloServer } = require("./graphql/server/apolloServer");
 const { productRouter } = require("./routes/product.routes");
 const { orderRouter } = require("./routes/order.routes");
+const { sequelize } = require("./config/postgresSequelize");
 const app = express();
 
 // ^ Mounting Apollo Server as middleware on your Express app
@@ -28,6 +29,8 @@ app.use("/order", orderRouter);
 app.listen(process.env.PORT, async (req, res) => {
   try {
     await connection;
+    await sequelize.authenticate(); // Check database authentication
+    await sequelize.sync();
     startApolloServer(); // function call to start apollo server
     console.log("Connected to Database");
   } catch (error) {
